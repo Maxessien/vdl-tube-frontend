@@ -4,6 +4,7 @@ import logger from "@/src/utils/logger";
 import { useMutation } from "@tanstack/react-query";
 import { FaArrowDown } from "react-icons/fa";
 import { toast } from "react-toastify";
+import LoadRoller from "../reusable-components/LoadRoller";
 
 const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) => {
   const downloadSection = async () => {
@@ -56,7 +57,7 @@ const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) =>
         onClick={mutateAsync}
         className="text-xl text-(--text-primary) disabled:opacity-65 bg-(--main-primary) rounded-full p-4 font-bold"
       >
-        <FaArrowDown />
+        {isPending ? <LoadRoller size={20} /> : <FaArrowDown />}
       </button>
     </li>
   );
