@@ -8,13 +8,17 @@ import LoadRoller from "../reusable-components/LoadRoller";
 
 const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) => {
   const downloadSection = async () => {
-    if (!Number.isFinite(Number(start_time)) && !Number.isFinite(Number(end_time))) {
+    if (!Number.isFinite(Number(start_time)) || !Number.isFinite(Number(end_time))) {
       toast.error("Start and End is not a number");
       return new Error("Start and End is not a number");
     }
     try {
       const downloadUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&format_id=${id}&start=${start_time}&end=${end_time}`;
-      window.open(downloadUrl, '_blank');
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => link.remove(), 1000);
       toast.success("Download Started");
     } catch (err) {
       logger.log("Download section ERR", err);
