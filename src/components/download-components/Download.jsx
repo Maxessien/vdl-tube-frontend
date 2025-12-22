@@ -10,9 +10,8 @@ import { FaArrowLeft } from "react-icons/fa";
 const DownloadFormat = ({ format_id, chapters, url, name, quality, size, closeSection=()=>null }) => {
   const downloadFullVideo = async () => {
     try {
-      await regApi.get(
-        `/download?url=${url}&title=${name}&format_id=${format_id}`
-      );
+      const downloadUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(name)}&format_id=${format_id}`;
+      window.open(downloadUrl, '_blank');
       toast.success("Download Started");
     } catch (err) {
       logger.error("Full Video Download Error", err);
@@ -35,7 +34,7 @@ const DownloadFormat = ({ format_id, chapters, url, name, quality, size, closeSe
         <button
           disabled={isPending}
           onClick={mutateAsync}
-          className="flex disabled:opacity-60 justify-center items-center text-xl text-(--text-primary) w-full rounded-full bg-(--main-primary) font-semibold"
+          className="flex disabled:opacity-60 py-4 justify-center items-center text-xl text-(--text-primary) w-full rounded-full bg-(--main-primary) font-semibold"
         >
           Download Full Video{size && Number.isFinite(Number(size)) && <span>{" "}({Number(size) / (1024 * 1024)}MB)</span>}
         </button>
@@ -50,6 +49,7 @@ const DownloadFormat = ({ format_id, chapters, url, name, quality, size, closeSe
           {chapters?.length > 0 ? (
             <ul className="space-y-2">
             {chapters.map((chapter) => {
+              console.log(chapter)
               chapter.id = format_id;
               chapter.url = url;
               return (

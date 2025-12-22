@@ -7,8 +7,12 @@ import { notFound } from "next/navigation";
 const DownloadPage = async ({ params }) => {
   try {
     const { id } = await params;
-    if (!id || id.trim().length <= 0) return notFound();
+    if (!id || id.trim().length <= 0){
+      logger.log("JUst", id)
+      return notFound()
+    };
     const {data} = await regApi.get(`/links/${id}`);
+    logger.log("Url data", data)
     const info = await regApi.get("/info", { params: { urlId: id } });
     info.data.url = data.url;
     // eslint-disable-next-line react-hooks/error-boundaries
