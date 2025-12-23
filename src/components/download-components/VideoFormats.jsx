@@ -1,10 +1,9 @@
 "use client"
 
-import { motion } from "framer-motion";
-import { AnimatePresence } from "framer-motion";
-import DownloadFormat from "./Download";
-import Image from "next/image";
+import logger from "@/src/utils/logger";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import DownloadFormat from "./Download";
 
 const FormatsListCard = ({ quality, size, openFormatFn = () => null }) => {
   return (
@@ -31,9 +30,9 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters }) => {
 
   return (
     <section className="px-3 py-4">
-      {console.log(formats)}
+      {logger.log("InVDF", thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev))}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="w-full" src={thumbnails.reduce((prev, curr)=>curr.height > prev.height ? curr : prev).url} alt={`${title} thumbnail`} />
+        <img className="w-full" src={thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev).url} alt={`${title} thumbnail`} />
         <h1 className="text-2xl text-(--text-primary) w-full text-center font-semibold">{title}</h1>
       {(!openFormat.isOpen || openFormat.id.trim().length <= 0) && (
         <ul className="space-y-4">

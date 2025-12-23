@@ -14,6 +14,7 @@ const DownloadPage = async ({ params }) => {
     const {data} = await regApi.get(`/links/${id}`);
     logger.log("Url data", data)
     const info = await regApi.get("/info", { params: { urlId: id } });
+    logger.log("Info data", info)
     info.data.url = data.url;
     // eslint-disable-next-line react-hooks/error-boundaries
     return <VideoFormats {...info.data} />;
