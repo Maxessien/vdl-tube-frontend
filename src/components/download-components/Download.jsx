@@ -1,17 +1,20 @@
 "use client"
 
-import { regApi } from "@/src/utils/axiosBoilerplates";
-import { toast } from "react-toastify";
 import logger from "@/src/utils/logger";
 import { useMutation } from "@tanstack/react-query";
-import ChaptersList from "./ChapterList";
 import { FaArrowLeft } from "react-icons/fa";
+import { toast } from "react-toastify";
+import ChaptersList from "./ChapterList";
 
 const DownloadFormat = ({ format_id, chapters, url, name, quality, size, closeSection=()=>null }) => {
   const downloadFullVideo = async () => {
     try {
       const downloadUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(name)}&format_id=${format_id}`;
-      window.open(downloadUrl, '_blank');
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => link.remove(), 1000);
       toast.success("Download Started");
     } catch (err) {
       logger.error("Full Video Download Error", err);
@@ -26,10 +29,11 @@ const DownloadFormat = ({ format_id, chapters, url, name, quality, size, closeSe
 
   return (
     <>
+    {logger.log("Format id", format_id)}
       <section className="space-y-4">
         <button onClick={closeSection} className="w-full text-left text-2xl text-(--text-primary) block font-semibold"><FaArrowLeft /></button>
         <h2 className="text-2xl text-(--text-primary) w-full text-center font-bold">
-          {quality}
+          {quality}P
         </h2>
         <button
           disabled={isPending}

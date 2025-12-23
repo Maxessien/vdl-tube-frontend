@@ -1,4 +1,4 @@
-import Search from './Seach'
+import Search from './Search'
 
 const Home = () => {
   return (
