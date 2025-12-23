@@ -33,7 +33,7 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters }) => {
     <section className="px-3 py-4">
       {console.log(formats)}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="w-full" src={thumbnails[3].url} alt={`${title} thumbnail`} />
+        <img className="w-full" src={thumbnails.reduce((prev, curr)=>curr.height > prev.height ? curr : prev).url} alt={`${title} thumbnail`} />
         <h1 className="text-2xl text-(--text-primary) w-full text-center font-semibold">{title}</h1>
       {(!openFormat.isOpen || openFormat.id.trim().length <= 0) && (
         <ul className="space-y-4">
