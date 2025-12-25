@@ -37,7 +37,7 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration
       {logger.log("InVDF", thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev))}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="w-full" src={thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev).url} alt={`${title} thumbnail`} />
-        <h1 className="text-2xl text-(--text-primary) w-full text-center font-semibold">{title}</h1>
+        <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">{title}</h1>
       {(!openFormat.isOpen || openFormat.id.trim().length <= 0) && (
         <ul className="space-y-4">
           {formats.map(({ height, filesize, format_id, tbr }) => (
@@ -63,6 +63,7 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration
               quality={findFormat(openFormat.id).height}
               size={findFormat(openFormat.id).filesize}
               closeSection={()=>setOpenFormat({isOpen: false, id: ""})}
+              duration={duration}
             />
           </motion.div>
         </AnimatePresence>

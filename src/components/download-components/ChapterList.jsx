@@ -3,28 +3,10 @@
 import logger from "@/src/utils/logger";
 import { useMutation } from "@tanstack/react-query";
 import { FaArrowDown } from "react-icons/fa";
-import { toast } from "react-toastify";
 import LoadRoller from "../reusable-components/LoadRoller";
+import { downloadSection } from "@/src/utils/download";
 
 const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) => {
-  const downloadSection = async () => {
-    if (!Number.isFinite(Number(start_time)) || !Number.isFinite(Number(end_time))) {
-      toast.error("Start and End is not a number");
-      return new Error("Start and End is not a number");
-    }
-    try {
-      const downloadUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&format_id=${id}&start=${start_time}&end=${end_time}`;
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => link.remove(), 1000);
-      toast.success("Download Started");
-    } catch (err) {
-      logger.log("Download section ERR", err);
-      toast.error("Couldn't download chapter, try again later");
-    }
-  };
 
   const formatSeconds = (timeInSec) => {
     let hour = null;
@@ -42,7 +24,7 @@ const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) =>
   };
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: downloadSection,
+    mutationFn: (name, start, end, f_id, vid_url)=> downloadSection(name, start, end, f_id, vid_url ),
   });
 
   return (
@@ -58,7 +40,7 @@ const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) =>
       </div>
       <button
         disabled={isPending}
-        onClick={mutateAsync}
+        onClick={()=>mutateAsync(title, start_time, end_time, id, url)}
         className="text-xl text-(--text-primary) disabled:opacity-65 bg-(--main-primary) rounded-full p-4 font-bold"
       >
         {isPending ? <LoadRoller size={20} /> : <FaArrowDown />}

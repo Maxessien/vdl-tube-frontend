@@ -51,13 +51,12 @@ const LoadRoller = ({
           height: '100%',
           display: 'block',
         }}
-        animate={{
-          rotate: [0, 360, 0],
-        }}
+        animate={{ rotate: 360 }}
         transition={{
           duration: duration * 2,
           repeat: Infinity,
           ease: 'linear',
+          repeatType: 'loop',
         }}
       >
         <circle

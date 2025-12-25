@@ -20,20 +20,20 @@ const Search = () => {
 
   return (
     <>
-      <div className="w-full relative">
+      <div className="w-full flex justify-start items-center pl-2 bg-(--main-secondary-light) rounded-full">
+        <button
+          onClick={search}
+          className="text-xl text-(--text-primary) p-3 rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-semibold"
+        >
+          <FaSearch />
+        </button>
         <input
           value={videoUrl}
           placeholder="Enter video url"
           onChange={({ target: { value } }) => setVideoUrl(value)}
-          className="w-full placeholder:text-(--text-primary-light) rounded-full placeholder:pl-15 bg-(--main-secondary-light) font-medium text-lg text-(--text-primary) px-2 pl-15 py-5"
+          className="w-full placeholder:text-(--text-primary-light) rounded-[0px_9999px_9999px_0px] focus:outline-0 py-3 px-2 font-medium text-lg text-(--text-primary)"
           type="text"
         />
-        <button
-          onClick={search}
-          className="text-xl text-(--text-primary) p-3 rounded-full absolute top-3 left-2 bg-(--main-primary) hover:bg-(--main-primary-light) font-semibold"
-        >
-          <FaSearch />
-        </button>
       </div>
     </>
   );
