@@ -5,17 +5,30 @@ import logger from "@/src/utils/logger";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaSearch } from "react-icons/fa";
+import { toast } from "react-toastify";
+import LoadRoller from "../reusable-components/LoadRoller";
 
 const Search = () => {
   const [videoUrl, setVideoUrl] = useState("");
+  const [isFetching, setIsFetching] = useState(false)
   const router = useRouter();
 
   const search = async() => {
-    if (videoUrl.trim().length <= 0) return;
-    const urlId = self.crypto.randomUUID()
-    logger.log("Backend url", process.env.NEXT_PUBLIC_BACKEND_URL)
-    await regApi.post("/links", {id: urlId, url: videoUrl})
-    router.push(`/download/${urlId}`)
+    try {
+      setIsFetching(true)
+      if (videoUrl.trim().length <= 0) return;
+      const urlId = self.crypto.randomUUID()
+      logger.log("Backend url", process.env.NEXT_PUBLIC_BACKEND_URL)
+      await regApi.post("/links", {id: urlId, url: videoUrl})
+      router.push(`/download/${urlId}`)
+      return urlId
+    } catch (err) {
+      logger.error("Error searching", err)
+      toast.error("There was an error searching for video")
+      throw err
+    }finally{
+      setIsFetching(false)
+    }
   };
 
   return (
@@ -23,9 +36,9 @@ const Search = () => {
       <div className="w-full flex justify-start items-center pl-2 bg-(--main-secondary-light) rounded-full">
         <button
           onClick={search}
-          className="text-xl text-(--text-primary) p-3 rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-semibold"
+          className={`text-xl text-(--text-primary) ${isFetching ? "py-1.5 px-3" : "p-3"} rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-semibold`}
         >
-          <FaSearch />
+          {isFetching ? <LoadRoller size={18} strokeWidth={14} /> : <FaSearch />}
         </button>
         <input
           value={videoUrl}

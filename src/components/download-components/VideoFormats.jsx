@@ -15,7 +15,7 @@ const FormatsListCard = ({ quality, size, openFormatFn = () => null }) => {
         Quality - {quality}P
       </p>
       <p className="text-xl text-(--text-primary) font-bold">
-        Size - {Number.isFinite(size) ? `${Math.round(size / (1024 * 1024))} MB` : "Not available"}
+        Size - {Number.isFinite(size) ? `${(size / (1024 * 1024)).toFixed(2)} MB` : "Not available"}
       </p>
     </li>
   );
@@ -30,6 +30,7 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration
 
   const calculateSize = (totalBitRate, dur)=>{
     const sizeInBytes = ((totalBitRate * 1000) / 8) * dur
+    const trimmed = sizeInBytes - (sizeInBytes*0.3)
     return sizeInBytes
   }
   return (

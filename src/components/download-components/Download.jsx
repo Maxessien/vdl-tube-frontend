@@ -51,15 +51,21 @@ const DownloadFormat = ({
   };
 
   const downloadRange = async ({ start, end }) => {
-    setRangeIsPending(true);
-    await downloadSection(
-      `${name}(${start}min-${end}min)`,
-      Number(start) * 60,
-      Number(end) * 60,
-      format_id,
-      url
-    );
-    setRangeIsPending(false);
+    try {
+      setRangeIsPending(true);
+      await downloadSection(
+        `${name}(${start}min-${end}min)`,
+        Number(start) * 60,
+        Number(end) * 60,
+        format_id,
+        url
+      );
+    } catch (err) {
+      logger.error("Range download error", err);
+      toast.error(`Couldn't download video range (${start}min-${end}min)`);
+    } finally {
+      setRangeIsPending(false);
+    }
   };
 
   const { mutateAsync, isPending } = useMutation({
@@ -84,7 +90,11 @@ const DownloadFormat = ({
           onClick={mutateAsync}
           className="flex disabled:opacity-60 py-4 justify-center items-center text-xl text-(--text-primary) w-full rounded-full bg-(--main-primary) font-semibold"
         >
-          {isPending ? <LoadRoller size={27} strokeWidth={12} /> : "Download Full Video"}
+          {isPending ? (
+            <LoadRoller size={27} strokeWidth={12} />
+          ) : (
+            "Download Full Video"
+          )}
           {size && Number.isFinite(Number(size)) && (
             <span> ({Number(size) / (1024 * 1024)}MB)</span>
           )}
@@ -137,7 +147,11 @@ const DownloadFormat = ({
                 type="submit"
                 className="flex disabled:opacity-60 py-4 justify-center items-center text-xl text-(--text-primary) w-full rounded-full bg-(--main-primary) font-semibold"
               >
-                {rangeIsPending ? <LoadRoller size={27} strokeWidth={12} /> : "Download Range"}
+                {rangeIsPending ? (
+                  <LoadRoller size={27} strokeWidth={12} />
+                ) : (
+                  "Download Range"
+                )}
               </button>
             </form>
           </section>
