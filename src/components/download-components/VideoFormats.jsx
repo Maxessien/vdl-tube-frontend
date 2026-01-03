@@ -35,7 +35,6 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration
   }
   return (
     <section className="px-3 py-4 max-w-lg mx-auto">
-      {logger.log("InVDF", thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev))}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="w-full" src={thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev).url} alt={`${title} thumbnail`} />
         <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">{title}</h1>

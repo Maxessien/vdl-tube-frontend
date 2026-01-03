@@ -6,11 +6,10 @@ import { FaArrowLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
 import ChaptersList from "./ChapterList";
 import { useForm } from "react-hook-form";
-import { downloadSection } from "@/src/utils/download";
+import { downloadFullVideo, downloadSection, formatProgressInfo } from "@/src/utils/download";
 import LoadRoller from "../reusable-components/LoadRoller";
-import axios from "axios";
-import fileDownload from "js-file-download";
 import { useState } from "react";
+import { regApi } from "@/src/utils/axiosBoilerplates";
 
 const DownloadFormat = ({
   format_id,
@@ -29,37 +28,32 @@ const DownloadFormat = ({
     formState: { errors },
   } = useForm({ defaultValues: { start: 0, end: (duration / 60).toFixed(2) } });
   const [rangeIsPending, setRangeIsPending] = useState(false);
+  const [processingFull, setProcessingFull] = useState({isActive: false, progressInfo: {}})
+  const [processingRange, setProcessingRange] = useState({isActive: false, progressInfo: {}})
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const formValues = watch();
 
-  const downloadFullVideo = async () => {
-    try {
-      const downloadUrl = `${
-        process.env.NEXT_PUBLIC_BACKEND_URL
-      }/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(
-        name
-      )}&format_id=${format_id}`;
-      const res = await axios.get(downloadUrl, { responseType: "blob" });
-      fileDownload(res.data, `${name}.mp4`);
-      toast.success("Download Started");
-    } catch (err) {
-      logger.error("Full Video Download Error", err);
-      toast.error("Couldn't download video, Try again later");
-      throw err;
-    }
-  };
-
   const downloadRange = async ({ start, end }) => {
     try {
       setRangeIsPending(true);
-      await downloadSection(
+      const prog_id = await downloadSection(
         `${name}(${start}min-${end}min)`,
         Number(start) * 60,
         Number(end) * 60,
         format_id,
         url
       );
+      setProcessingRange((state)=>({...state, isActive: true}))
+      const fullVidProcessingInt = setInterval(async()=>{
+        const progress = await regApi.get(`/progress/${prog_id}`)
+        if (progress.data.status === "finished"){
+          setProcessingRange((state)=>({...state, isActive: false}))
+          clearInterval(fullVidProcessingInt)
+        }else{
+          setProcessingRange((state)=>({...state, progressInfo: progress.data}))
+        }
+      }, 1000)
     } catch (err) {
       logger.error("Range download error", err);
       toast.error(`Couldn't download video range (${start}min-${end}min)`);
@@ -68,13 +62,28 @@ const DownloadFormat = ({
     }
   };
 
+
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: downloadFullVideo,
+    mutationFn: ()=> downloadFullVideo(name, format_id, url),
+    onSuccess: (prog_id)=>{
+      const fullVidProcessingInt = async(progressId)=>{
+        const progress = await regApi.get(`/progress/${progressId}`)
+        logger.log("Progress data full", progress.data)
+        if (progress.data.status === "finished"){
+          setProcessingFull({progressInfo: {}, isActive: false})
+          toast.success("Download Started")
+        }else{
+          setProcessingFull({isActive: true, progressInfo: progress.data})
+          setTimeout(()=>fullVidProcessingInt(progressId), 300)
+        }
+      }
+      fullVidProcessingInt(prog_id)
+    },
+    onError: ()=>toast.error("Couldn't download video, Try again later")
   });
 
   return (
     <>
-      {logger.log("Format id", format_id)}
       <section className="space-y-4">
         <button
           onClick={closeSection}
@@ -86,14 +95,14 @@ const DownloadFormat = ({
           {quality}P
         </h2>
         <button
-          disabled={isPending || rangeIsPending}
+          disabled={isPending || rangeIsPending || processingFull.i}
           onClick={mutateAsync}
           className="flex disabled:opacity-60 py-4 justify-center items-center text-xl text-(--text-primary) w-full rounded-full bg-(--main-primary) font-semibold"
         >
           {isPending ? (
             <LoadRoller size={27} strokeWidth={12} />
           ) : (
-            "Download Full Video"
+            processingFull.isActive ? `Processing Video ${formatProgressInfo(processingFull.progressInfo)}%` : "Download Full Video"
           )}
           {size && Number.isFinite(Number(size)) && (
             <span> ({Number(size) / (1024 * 1024)}MB)</span>
@@ -143,14 +152,14 @@ const DownloadFormat = ({
                 </p>
               )}
               <button
-                disabled={rangeIsPending || isPending}
+                disabled={rangeIsPending || isPending || processingRange.isActive}
                 type="submit"
                 className="flex disabled:opacity-60 py-4 justify-center items-center text-xl text-(--text-primary) w-full rounded-full bg-(--main-primary) font-semibold"
               >
                 {rangeIsPending ? (
                   <LoadRoller size={27} strokeWidth={12} />
                 ) : (
-                  "Download Range"
+                  processingRange.isActive ? `Processing Video ${formatProgressInfo(processingRange.progressInfo)}%` : "Download Range"
                 )}
               </button>
             </form>
@@ -170,6 +179,8 @@ const DownloadFormat = ({
                   <ChaptersList
                     key={`${chapter.title}-${chapter.start}`}
                     {...chapter}
+                    id={format_id}
+                    url={url}
                   />
                 );
               })}

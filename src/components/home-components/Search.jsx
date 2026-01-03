@@ -18,7 +18,6 @@ const Search = () => {
       setIsFetching(true)
       if (videoUrl.trim().length <= 0) return;
       const urlId = self.crypto.randomUUID()
-      logger.log("Backend url", process.env.NEXT_PUBLIC_BACKEND_URL)
       await regApi.post("/links", {id: urlId, url: videoUrl})
       router.push(`/download/${urlId}`)
       return urlId

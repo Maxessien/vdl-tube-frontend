@@ -1,12 +1,10 @@
-import fileDownload from "js-file-download";
 import { toast } from "react-toastify";
-import crypto from "crypto"
+import crypto from "crypto";
+import {v4 as uuidv4} from "uuid"
 import logger from "./logger";
-import axios from "axios";
-
 
 /**
- * 
+ *
  * @param {String} title - Title of the download
  * @param {Number} start_time - Start range of the download
  * @param {Number} end_time - End range of the download
@@ -28,16 +26,61 @@ export const downloadSection = async (
     return new Error("Start and End is not a number");
   }
   try {
+    const prog_id = uuidv4()
     const downloadUrl = `${
       process.env.NEXT_PUBLIC_BACKEND_URL
     }/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(
       title
-    )}&format_id=${id}&start=${start_time}&end=${end_time}`;
-    const res = await axios.get(downloadUrl, {responseType: "blob"})
-    fileDownload(res.data, `${title || crypto.randomUUID()}.mp4`)
-    toast.success("Download Started");
+    )}&format_id=${id}&start=${start_time}&end=${end_time}&prog_id=${prog_id}`;
+    const linkTag = document.createElement("a");
+    linkTag.href = downloadUrl;
+    linkTag.click();
+    toast.warn("Processing Video, Please wait a few minutes");
+    return prog_id;
   } catch (err) {
-    logger.log("Download section ERR", err);
-    toast.error("Couldn't download chapter, try again later");
+    logger.error("Download section ERR", err);
+    throw err
   }
 };
+
+/**
+ * @param {Object} progressObj - Progress hook object for tracking progress
+ * @returns {Number} Returns progress percentage
+ */
+export const formatProgressInfo = ({
+  fragment_index,
+  fragment_count,
+  total_bytes,
+  total_bytes_estimate,
+  downloaded_bytes,
+}) => {
+  if (fragment_index && fragment_count)
+    return (fragment_index / fragment_count) * 100;
+
+  if ((total_bytes || total_bytes_estimate) && downloaded_bytes)
+    return total_bytes_estimate
+      ? (downloaded_bytes / total_bytes_estimate) * 100
+      : (downloaded_bytes / total_bytes) * 100;
+
+  return null
+};
+
+
+export  const downloadFullVideo = async (name, format_id, url) => {
+    try {
+      const prog_id = uuidv4()
+      const downloadUrl = `${
+        process.env.NEXT_PUBLIC_BACKEND_URL
+      }/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(
+        name
+      )}&format_id=${format_id}&prog_id=${prog_id}`;
+      const linkTag = document.createElement("a")
+      linkTag.href = downloadUrl
+      linkTag.click()
+      toast.warn("Processing Video, Please wait a few minutes");
+      return prog_id
+    } catch (err) {
+      logger.error("Full Video Download Error", err);
+      throw err;
+    }
+  };
