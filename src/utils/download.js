@@ -43,8 +43,16 @@ export const downloadSection = async (
   }
 };
 
+const Types = {
+  fragment_index: 0,
+  fragment_count: 0,
+  total_bytes: 0,
+  total_bytes_estimate: 0,
+  downloaded_bytes: 0,
+}
+
 /**
- * @param {Object} progressObj - Progress hook object for tracking progress
+ * @param {Types} progressObj - Progress hook object for tracking progress
  * @returns {Number} Returns progress percentage
  */
 export const formatProgressInfo = ({
