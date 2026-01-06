@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import logger from "@/src/utils/logger";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,29 +15,49 @@ const FormatsListCard = ({ quality, size, openFormatFn = () => null }) => {
         Quality - {quality}P
       </p>
       <p className="text-xl text-(--text-primary) font-bold">
-        Size - {Number.isFinite(size) ? `${(size / (1024 * 1024)).toFixed(2)} MB` : "Not available"}
+        Size -{" "}
+        {Number.isFinite(size)
+          ? `${(size / (1024 * 1024)).toFixed(2)} MB`
+          : "Not available"}
       </p>
     </li>
   );
 };
 
-const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration }) => {
+const VideoFormats = ({
+  formats = [],
+  url,
+  title,
+  thumbnails,
+  chapters,
+  duration,
+}) => {
   const [openFormat, setOpenFormat] = useState({ id: "", isOpen: false });
 
   const findFormat = (id) => {
     return formats.find((format) => format.format_id === id);
   };
 
-  const calculateSize = (totalBitRate, dur)=>{
-    const sizeInBytes = ((totalBitRate * 1000) / 8) * dur
-    const trimmed = sizeInBytes - (sizeInBytes*0.3)
-    return sizeInBytes
-  }
+  const calculateSize = (totalBitRate, dur) => {
+    const sizeInBytes = ((totalBitRate * 1000) / 8) * dur;
+    return sizeInBytes;
+  };
   return (
     <section className="px-3 py-4 max-w-lg mx-auto">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="w-full" src={thumbnails.filter((image)=>image.height).reduce((prev, curr)=>curr.height > prev.height ? curr : prev).url} alt={`${title} thumbnail`} />
-        <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">{title}</h1>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="w-full"
+        src={
+          thumbnails
+            ?.filter((image) => image.height)
+            .reduce((prev, curr) => (curr.height > prev.height ? curr : prev))
+            ?.url || "default_url"
+        }
+        alt={`${title} thumbnail`}
+      />
+      <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">
+        {title}
+      </h1>
       {(!openFormat.isOpen || openFormat.id.trim().length <= 0) && (
         <ul className="space-y-4">
           {formats.map(({ height, filesize, format_id, tbr }) => (
@@ -54,7 +74,12 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration
       )}
       {openFormat.isOpen && openFormat.id.trim().length > 0 && (
         <AnimatePresence>
-          <motion.div initial={{x: "150vw"}} transition={{duration: 0.7, ease: "easeIn"}} exit={{x: "150vw"}} animate={{x: "0vw"}}>
+          <motion.div
+            initial={{ x: "150vw" }}
+            transition={{ duration: 0.7, ease: "easeIn" }}
+            exit={{ x: "150vw" }}
+            animate={{ x: "0vw" }}
+          >
             <DownloadFormat
               name={title}
               url={url}
@@ -62,7 +87,7 @@ const VideoFormats = ({ formats = [], url, title, thumbnails, chapters, duration
               format_id={findFormat(openFormat.id).format_id}
               quality={findFormat(openFormat.id).height}
               size={findFormat(openFormat.id).filesize}
-              closeSection={()=>setOpenFormat({isOpen: false, id: ""})}
+              closeSection={() => setOpenFormat({ isOpen: false, id: "" })}
               duration={duration}
             />
           </motion.div>

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import logger from "@/src/utils/logger";
 import { useMutation } from "@tanstack/react-query";
@@ -7,10 +7,16 @@ import LoadRoller from "../reusable-components/LoadRoller";
 import { downloadSection, formatProgressInfo } from "@/src/utils/download";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { useDownloadProgress } from "@/src/hooks/downloadHooks";
 
-const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) => {
-
-  const [processingChapter, setProcessingChapter] = useState({isActive: false, progressInfo: {}})
+const ChaptersList = ({
+  title,
+  start_time = null,
+  end_time = null,
+  id,
+  url,
+}) => {
+  const { startProcessing, processingInfo } = useDownloadProgress();
 
   const formatSeconds = (timeInSec) => {
     let hour = null;
@@ -28,22 +34,13 @@ const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) =>
   };
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: async (name, start, end, f_id, vid_url)=> {
-      await downloadSection(name, start, end, f_id, vid_url )
+    mutationFn: async (name, start, end, f_id, vid_url) => {
+      await downloadSection(name, start, end, f_id, vid_url);
     },
-    onError: ()=>toast.error("Couldn't download chapter, try again later"),
-    onSuccess: (prog_id)=>{
-      setProcessingChapter((state)=>({...state, isActive: true}))
-      const chapProcessingInt = setInterval(async()=>{
-        const progress = await regApi.get(`/progress/${prog_id}`)
-        if (progress.data.status === "finished"){
-          setProcessingChapter((state)=>({...state, isActive: false}))
-          clearInterval(chapProcessingInt)
-        }else{
-          setProcessingChapter((state)=>({...state, progressInfo: progress.data}))
-        }
-      }, 1000)
-    }
+    onError: () => toast.error("Couldn't download chapter, try again later"),
+    onSuccess: (prog_id) => {
+      startProcessing(prog_id);
+    },
   });
 
   return (
@@ -60,13 +57,17 @@ const ChaptersList = ({ title, start_time = null, end_time = null, id, url }) =>
         </div>
         <button
           disabled={isPending}
-          onClick={()=>mutateAsync(title, start_time, end_time, id, url)}
+          onClick={() => mutateAsync(title, start_time, end_time, id, url)}
           className="text-xl text-(--text-primary) disabled:opacity-65 bg-(--main-primary) rounded-full p-4 font-bold"
         >
           {isPending ? <LoadRoller size={20} /> : <FaArrowDown />}
         </button>
       </li>
-      <p className="text-center mt-[6px] text-base text(--text-primary) font-medium">Processing video {formatProgressInfo(processingChapter.progressInfo)}%</p>
+      {processingInfo.isActive && (
+        <p className="text-left w-full mt-1.5 text-base text-(--text-primary) font-medium">
+          Processing video {formatProgressInfo(processingInfo.progressInfo) ?? "N/A"}%
+        </p>
+      )}
     </>
   );
 };
