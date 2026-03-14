@@ -8,6 +8,7 @@ import axios from "axios";
 import { notFound } from "next/navigation";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import LoadRoller from "../reusable-components/LoadRoller";
 
 const FormatsListCard = ({
   format,
@@ -22,17 +23,18 @@ const FormatsListCard = ({
 }) => {
   const { quality, url } = format;
   const {mutateAsync, isPending} = useMutation({
-    mutationFn: () =>
-      resolveDownloadUrl(vidKey, `${quality}`, "video", url, titleSlug),
-    onSuccess: async(downloadUrlRes) => {
+    mutationFn: async() =>{
+      const downloadUrlRes = await resolveDownloadUrl(vidKey, `${quality}`, "video", url, titleSlug)
       const { data } = downloadUrlRes;
       const res = await axios.get("/api/download", {responseType: "blob", params: {url: data.downloadUrl}})
       const blobUrl = URL.createObjectURL(res.data)
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = `${title}.mp4`;
-      // console.log(data)
+      link.download = `${title}-${quality}P.mp4`;
       link.click();
+      return {finished: true}
+    },
+    onSuccess: () => {
       toast.success("Download Started");
     },
     onError: () => toast.error("Download Failed"),
@@ -43,7 +45,7 @@ const FormatsListCard = ({
         Quality - {quality}P
       </p>
       <button onClick={()=>mutateAsync()} disabled={isPending} className="flex disabled:opacity-75 py-2 px-4 justify-center items-center text-base text-(--text-primary) not-visited:rounded-full bg-(--main-primary) font-semibold">
-        Download
+        {isPending ? <div className="w-20 h-5"><LoadRoller duration={0.7} /></div> : "Download"}
       </button>
     </li>
   );
