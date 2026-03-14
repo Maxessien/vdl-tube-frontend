@@ -1,123 +1,83 @@
 "use client";
 
-import type { Chapter, Thumbnail, VideoFormat } from "@/src/types/download";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import DownloadFormat from "./Download";
 
-interface FormatsListCardProps {
-  quality: number;
-  size?: number | null;
-  openFormatFn?: () => null | void;
-}
+import { RootState } from "@/src/store";
+import { resolveDownloadUrl, VideoFormat } from "@/src/utils/mate";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { notFound } from "next/navigation";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
-interface OpenFormatState {
-  id: string;
-  isOpen: boolean;
-}
-
-interface VideoFormatsProps {
-  formats?: VideoFormat[];
-  url: string;
+const FormatsListCard = ({
+  format,
+  vidKey,
+  title,
+  titleSlug,
+}: {
+  format: VideoFormat;
+  vidKey: string;
   title: string;
-  thumbnails?: Thumbnail[];
-  chapters?: Chapter[];
-  duration?: number;
-}
-
-const FormatsListCard = ({ quality, size, openFormatFn = () => null }: FormatsListCardProps) => {
+  titleSlug: string;
+}) => {
+  const { quality, url } = format;
+  const {mutateAsync, isPending} = useMutation({
+    mutationFn: () =>
+      resolveDownloadUrl(vidKey, `${quality}`, "video", url, titleSlug),
+    onSuccess: async(downloadUrlRes) => {
+      const { data } = downloadUrlRes;
+      const res = await axios.get("/api/download", {responseType: "blob", params: {url: data.downloadUrl}})
+      const blobUrl = URL.createObjectURL(res.data)
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${title}.mp4`;
+      // console.log(data)
+      link.click();
+      toast.success("Download Started");
+    },
+    onError: () => toast.error("Download Failed"),
+  });
   return (
-    <li
-      onClick={openFormatFn}
-      className="w-full px-3 py-4 space-y-3 text-left rounded-md bg-(--main-secondary-light) shadow-md shadow-gray-700"
-    >
-      <p className="text-xl text-(--text-primary) font-bold">Quality - {quality}P</p>
+    <li className="w-full flex justify-between items-center px-3 py-5 space-y-3 text-left rounded-md bg-(--main-secondary-light) shadow-md shadow-gray-700">
       <p className="text-xl text-(--text-primary) font-bold">
-        Size -{" "}
-        {Number.isFinite(Number(size)) ? `${(Number(size) / (1024 * 1024)).toFixed(2)} MB` : "Not available"}
+        Quality - {quality}P
       </p>
+      <button onClick={()=>mutateAsync()} disabled={isPending} className="flex disabled:opacity-75 py-2 px-4 justify-center items-center text-base text-(--text-primary) not-visited:rounded-full bg-(--main-primary) font-semibold">
+        Download
+      </button>
     </li>
   );
 };
 
-const VideoFormats = ({
-  formats = [],
-  url,
-  title,
-  thumbnails = [],
-  chapters = [],
-  duration,
-}: VideoFormatsProps) => {
-  const [openFormat, setOpenFormat] = useState<OpenFormatState>({ id: "", isOpen: false });
-
-  const findFormat = (id: string) => {
-    return formats.find((format) => format.format_id === id);
-  };
-
-  const calculateSize = (totalBitRate?: number | null, dur?: number) => {
-    if (!Number.isFinite(Number(totalBitRate)) || !Number.isFinite(Number(dur))) {
-      return null;
-    }
-    const sizeInBytes = ((Number(totalBitRate) * 1000) / 8) * Number(dur);
-    return sizeInBytes;
-  };
-
-  const selectedFormat = openFormat.id.trim().length > 0 ? findFormat(openFormat.id) : undefined;
-
+const VideoFormats = ({ id }: { id: string }) => {
+  const infos = useSelector((state: RootState)=>state.infoMappings)
+  const info = infos?.[id]
+  
+  if (!info) return notFound()
   return (
     <section className="px-3 py-4 max-w-lg mx-auto">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         className="w-full"
-        src={
-          thumbnails
-            .filter((image) => Number.isFinite(Number(image.height)))
-            .reduce<Thumbnail | null>((prev, curr) => {
-              if (!prev) {
-                return curr;
-              }
-              return Number(curr.height) > Number(prev.height) ? curr : prev;
-            }, null)?.url || "default_url"
-        }
-        alt={`${title} thumbnail`}
+        src={info?.thumbnail ?? info?.thumbnail_formats?.[0].url}
+        alt={`${info?.title} thumbnail`}
       />
-      <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">{title}</h1>
+      <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">
+        {info?.title}
+      </h1>
 
-      {(!openFormat.isOpen || openFormat.id.trim().length <= 0) && (
+      {info?.video_formats.length > 0 && (
         <ul className="space-y-4">
-          {formats.map(({ height, filesize, format_id, tbr }) => (
+          {info?.video_formats.map((format) => (
             <FormatsListCard
-              key={format_id}
-              openFormatFn={() => {
-                setOpenFormat({ isOpen: true, id: format_id });
-              }}
-              quality={height}
-              size={filesize ?? calculateSize(tbr, duration)}
+              format={format}
+              key={format.url}
+              vidKey={info?.key}
+              title={info?.title}
+              titleSlug={info?.titleSlug}
             />
           ))}
         </ul>
-      )}
-
-      {openFormat.isOpen && selectedFormat && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ x: "150vw" }}
-            transition={{ duration: 0.7, ease: "easeIn" }}
-            exit={{ x: "150vw" }}
-            animate={{ x: "0vw" }}
-          >
-            <DownloadFormat
-              name={title}
-              url={url}
-              chapters={chapters}
-              format_id={selectedFormat.format_id}
-              quality={selectedFormat.height}
-              size={selectedFormat.filesize}
-              closeSection={() => setOpenFormat({ isOpen: false, id: "" })}
-              duration={duration}
-            />
-          </motion.div>
-        </AnimatePresence>
       )}
     </section>
   );
