@@ -19,19 +19,8 @@ export const downloadVideo = async (
   const { data } = downloadUrlRes;
   const hasStart = Number.isFinite(start);
   const hasEnd = Number.isFinite(end);
-  const res = await axios.get("/api/download", {
-    responseType: "blob",
-    params: {
-      url: data.downloadUrl,
-      ...(hasStart ? { start } : {}),
-      ...(hasStart && hasEnd && Number(start) < Number(end)
-        ? { end }
-        : {}),
-    },
-  });
-  const blobUrl = URL.createObjectURL(res.data);
   const link = document.createElement("a");
-  link.href = blobUrl;
+  link.href = `/api/download?url=${data.downloadUrl}${hasStart ? `&start=${start}` : ""}${hasStart && hasEnd && Number(start) < Number(end) ? `&end=${end}` : ""}`;
   link.download = `${title}-${quality}P.mp4`;
   link.click();
   return { finished: true };
