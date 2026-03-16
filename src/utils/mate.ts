@@ -4,6 +4,11 @@
  */
 
 import axios from "axios";
+import type {
+  ContentType,
+  DownloadUrlResult,
+  VideoInfo,
+} from "@/src/types/matesTypes";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -16,59 +21,6 @@ const CDN_API_BASE = "https://media.savetube.vip/api";
  * Reconstructed from the obfuscated constant in the original bundle.
  */
 const DECRYPTION_KEY_HEX = "C5D58EF67A7584E4A29F6C35BBC4EB12";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export interface AudioFormat {
-  /** Numeric bitrate, e.g. 128 */
-  quality: number;
-  label: string;
-  url: string | null;
-}
-
-export interface VideoFormat {
-  height: number;
-  width: number;
-  /** Numeric quality value, e.g. 360, 720, 1080 */
-  quality: number;
-  label: string;
-  url: string | null;
-  default_selected: 0 | 1;
-}
-
-export interface ThumbnailFormat {
-  label: string;
-  quality: string;
-  value: string;
-  url: string;
-}
-
-export interface VideoInfo {
-  id: string;
-  key: string;
-  url: string;
-  title: string;
-  titleSlug: string;
-  thumbnail: string;
-  duration: number;
-  durationLabel: string;
-  audio_formats: AudioFormat[];
-  video_formats: VideoFormat[];
-  thumbnail_formats: ThumbnailFormat[];
-  /** Height of the default selected video format */
-  default_selected: number;
-  fromCache: boolean;
-}
-
-export type ContentType = "video" | "audio" | "all";
-
-export interface DownloadUrlResult {
-  status: boolean;
-  message: string;
-  data: { downloadUrl: string } | null;
-}
 
 // ---------------------------------------------------------------------------
 // CDN helpers

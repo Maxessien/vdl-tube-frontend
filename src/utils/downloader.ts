@@ -17,13 +17,15 @@ export const downloadVideo = async (
     titleSlug,
   );
   const { data } = downloadUrlRes;
-  const hasRange = (Number(start) || start === 0) && Number(end) && Number(start) < Number(end)
+  const hasStart = Number.isFinite(start);
+  const hasEnd = Number.isFinite(end);
   const res = await axios.get("/api/download", {
     responseType: "blob",
     params: {
       url: data.downloadUrl,
-      ...(hasRange
-        ? { start, end }
+      ...(hasStart ? { start } : {}),
+      ...(hasStart && hasEnd && Number(start) < Number(end)
+        ? { end }
         : {}),
     },
   });

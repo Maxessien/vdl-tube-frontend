@@ -1,8 +1,8 @@
-import { secondsToTimestamp, timestampToSeconds } from "@/src/utils/downloader";
 import LoadRoller from "@/src/components/reusable-components/LoadRoller";
+import { secondsToTimestamp, timestampToSeconds } from "@/src/utils/downloader";
 import { useForm } from "react-hook-form";
 
-const RangeDownload = ({ duration, submitFn, isPending }: { duration: number, isPending: boolean, submitFn: (start: number, end: number)=>void }) => {
+const RangeDownload = ({ duration, submitFn, isPending, isActive }: { duration: number, isActive: boolean, isPending: boolean, submitFn: (start: number, end: number)=>void }) => {
   const {
     register,
     handleSubmit,
@@ -92,10 +92,10 @@ const RangeDownload = ({ duration, submitFn, isPending }: { duration: number, is
           )}
         </div>
         <button
-          disabled={isPending}
+          disabled={isPending || isActive}
           className="flex disabled:opacity-75 py-3 px-4 w-full justify-center items-center text-xl text-(--text-primary) not-visited:rounded-full bg-(--main-primary) font-semibold"
         >
-          {isPending ? (
+          {isActive ? (
             <>
               <span className="sr-only">Downloading range</span>
               <LoadRoller size={24} duration={0.7} />

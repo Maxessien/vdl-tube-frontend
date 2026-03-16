@@ -1,13 +1,13 @@
 "use client";
 
 import { RootState } from "@/src/store";
-import { VideoFormat } from "@/src/utils/mate";
-import { notFound } from "next/navigation";
-import { useSelector } from "react-redux";
-import { useState } from "react";
-import QualityInfo from "./QualityInfo";
+import type { VideoFormat } from "@/src/types/matesTypes";
 import { motion } from "framer-motion";
+import { notFound } from "next/navigation";
+import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import QualityInfo from "./QualityInfo";
 
 const FormatsListCard = ({
   format,

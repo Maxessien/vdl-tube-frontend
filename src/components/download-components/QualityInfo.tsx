@@ -1,13 +1,14 @@
 import LoadRoller from "@/src/components/reusable-components/LoadRoller";
+import type { VideoInfo } from "@/src/types/matesTypes";
 import { downloadVideo, getYouTubeID } from "@/src/utils/downloader";
 import logger from "@/src/utils/logger";
-import { VideoInfo } from "@/src/utils/mate";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { Chapter } from "get-youtube-chapters";
 import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
-import Chapters, { Chapter } from './Chapters';
+import Chapters from './Chapters';
 import RangeDownload from "./RangeDownload";
 
 interface QualityInfo {
@@ -18,29 +19,35 @@ interface QualityInfo {
 
 const QualityInfo = ({ info, closeInfoFn, quality }: QualityInfo) => {
   const { key, duration, title, titleSlug, url } = info;
+  const [downloading, setDownloading] = useState({isActive: true, type: ""})
   const { mutateAsync, isPending } = useMutation({
     mutationFn: ({
       start,
       end,
       title,
+      type,
     }: {
+      type: string
       start?: number;
       title: string;
       end?: number;
-    }) =>
-      downloadVideo(
+    }) =>{
+      setDownloading({isActive: true, type: type})
+      return downloadVideo(
         key,
         quality,
         titleSlug,
         title,
         start ?? undefined,
         end ?? undefined,
-      ),
+      )
+    },
     onSuccess: () => toast.success("Video download started"),
     onError: () => toast.error("Video download failed"),
+    onSettled: ()=>setDownloading((state)=>({...state, isActive: false}))
   });
 
-  const [chaps, setChaps] = useState<Chapter[]>([]);
+  const [chaps, setChaps] = useState<{isLoading: boolean, data: Chapter[]}>({isLoading: false, data: []});
 
   const getChapters = async () => {
     const vidId = info?.id ?? getYouTubeID(url)
@@ -50,9 +57,10 @@ const QualityInfo = ({ info, closeInfoFn, quality }: QualityInfo) => {
 
   useEffect(() => {
     (async () => {
+      setChaps(state=>({...state, isLoading: true}))
       try {
         const chapters = await getChapters();
-        setChaps(chapters);
+        setChaps({isLoading: false, data: chapters});
       } catch (err) {
         logger.log("Chapter fetch error", err);
         toast.error("Failed to get chapters");
@@ -70,11 +78,11 @@ const QualityInfo = ({ info, closeInfoFn, quality }: QualityInfo) => {
           <FaArrowLeft /> Go back
         </button>
         <button
-          onClick={() => mutateAsync({ title })}
-          disabled={isPending}
+          onClick={() => mutateAsync({ type: "full", title })}
+          disabled={isPending || (downloading.isActive && downloading.type === "full")}
           className="flex disabled:opacity-75 py-3 px-4 w-full justify-center items-center text-xl text-(--text-primary) not-visited:rounded-full bg-(--main-primary) font-semibold"
         >
-          {isPending ? (
+          {(downloading.isActive && downloading.type === "full") ? (
             <>
               <span className="sr-only">Downloading full video</span>
               <LoadRoller size={24} duration={0.7} />
@@ -87,14 +95,16 @@ const QualityInfo = ({ info, closeInfoFn, quality }: QualityInfo) => {
 
       <RangeDownload
         isPending={isPending}
+        isActive={(downloading.isActive && downloading.type === "range")}
         duration={duration}
-        submitFn={(start, end) => mutateAsync({ start, end, title })}
+        submitFn={(start, end) => mutateAsync({ type: "range", start, end, title })}
       />
 
       <Chapters
+        isActive={(type)=>(downloading.isActive && downloading.type === type)}
         isPending={isPending}
         chapters={chaps}
-        downloadFn={(start, title, end) => mutateAsync({ start, end, title })}
+        downloadFn={(type, start, title, end) => mutateAsync({type, start, end, title })}
       />
     </>
   );

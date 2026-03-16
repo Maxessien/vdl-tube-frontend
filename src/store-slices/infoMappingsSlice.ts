@@ -1,4 +1,4 @@
-import { VideoInfo } from "@/src/utils/mate"
+import type { VideoInfo } from "@/src/types/matesTypes"
 import { createSlice } from "@reduxjs/toolkit"
 
 const initialState: {[key: string]: VideoInfo} = {}
