@@ -1,3 +1,5 @@
+import AppHeader from "@/src/components/layouts-components/AppHeader";
+import TopLoader from "@/src/components/reusable-components/TopLoader";
 import "@/src/index.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -5,10 +7,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../src/assets/css-reusable/variables.css";
 import AppProviders from "./providers";
-import TopLoader from "@/src/components/reusable-components/TopLoader";
 
 export const metadata: Metadata = {
   title: "Tube VDL",
+  icons: {
+    icon: "/vdl_tube_logo_transparent.png",
+  },
 };
 
 interface AppLayoutProps {
@@ -21,6 +25,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       <body>
         <TopLoader />
         <AppProviders>
+          <AppHeader />
           {children}
           <ToastContainer
             position="top-center"

@@ -1,61 +1,49 @@
 "use client";
 
-
 import { RootState } from "@/src/store";
-import { resolveDownloadUrl, VideoFormat } from "@/src/utils/mate";
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import { VideoFormat } from "@/src/utils/mate";
 import { notFound } from "next/navigation";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
-import LoadRoller from "../reusable-components/LoadRoller";
+import { useState } from "react";
+import QualityInfo from "./QualityInfo";
+import { motion } from "framer-motion";
+import { FaArrowRight } from "react-icons/fa";
 
 const FormatsListCard = ({
   format,
-  vidKey,
-  title,
-  titleSlug,
+  openInfo,
 }: {
   format: VideoFormat;
-  vidKey: string;
-  title: string;
-  titleSlug: string;
+  openInfo: () => void;
 }) => {
-  const { quality, url } = format;
-  const {mutateAsync, isPending} = useMutation({
-    mutationFn: async() =>{
-      const downloadUrlRes = await resolveDownloadUrl(vidKey, `${quality}`, "video", url, titleSlug)
-      const { data } = downloadUrlRes;
-      const res = await axios.get("/api/download", {responseType: "blob", params: {url: data.downloadUrl}})
-      const blobUrl = URL.createObjectURL(res.data)
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${title}-${quality}P.mp4`;
-      link.click();
-      return {finished: true}
-    },
-    onSuccess: () => {
-      toast.success("Download Started");
-    },
-    onError: () => toast.error("Download Failed"),
-  });
+  const { quality } = format;
+
   return (
     <li className="w-full flex justify-between items-center px-3 py-5 space-y-3 text-left rounded-md bg-(--main-secondary-light) shadow-md shadow-gray-700">
       <p className="text-xl text-(--text-primary) font-bold">
         Quality - {quality}P
       </p>
-      <button onClick={()=>mutateAsync()} disabled={isPending} className="flex disabled:opacity-75 py-2 px-4 justify-center items-center text-base text-(--text-primary) not-visited:rounded-full bg-(--main-primary) font-semibold">
-        {isPending ? <div className="w-20 h-5"><LoadRoller duration={0.7} /></div> : "Download"}
-      </button>
+      <button
+        onClick={openInfo}
+        className="flex disabled:opacity-75 py-2 px-4 justify-center items-center text-base text-(--text-primary) not-visited:rounded-full bg-(--main-primary) font-semibold"
+      ><FaArrowRight /></button>
     </li>
   );
 };
 
 const VideoFormats = ({ id }: { id: string }) => {
-  const infos = useSelector((state: RootState)=>state.infoMappings)
-  const info = infos?.[id]
-  
-  if (!info) return notFound()
+  const infos = useSelector((state: RootState) => state.infoMappings);
+  const info = infos?.[id];
+
+  if (!info) return notFound();
+
+  const [qualityInfo, setQualityInfo] = useState<{
+    isOpen: boolean;
+    quality: number;
+  }>({ isOpen: false, quality: info.video_formats?.[0].quality });
+
+
+
   return (
     <section className="px-3 py-4 max-w-lg mx-auto">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -68,18 +56,34 @@ const VideoFormats = ({ id }: { id: string }) => {
         {info?.title}
       </h1>
 
-      {info?.video_formats.length > 0 && (
+      {info?.video_formats.length > 0 && !qualityInfo.isOpen && (
         <ul className="space-y-4">
-          {info?.video_formats.map((format) => (
+          {info?.video_formats.map((format, index) => (
             <FormatsListCard
+              key={index}
+              openInfo={() =>
+                setQualityInfo({ isOpen: true, quality: format.quality })
+              }
               format={format}
-              key={format.url}
-              vidKey={info?.key}
-              title={info?.title}
-              titleSlug={info?.titleSlug}
             />
           ))}
         </ul>
+      )}
+
+      {qualityInfo.isOpen && (
+        <motion.div
+          initial={{ left: "120vw", opacity: 0.6 }}
+          animate={{ left: "0%", opacity: 1 }}
+          transition={{ duration: 0.75, ease: "easeIn" }}
+        >
+          <QualityInfo
+            info={info}
+            quality={qualityInfo?.quality}
+            closeInfoFn={() =>
+              setQualityInfo((state) => ({ ...state, isOpen: false }))
+            }
+          />
+        </motion.div>
       )}
     </section>
   );
