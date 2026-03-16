@@ -64,6 +64,8 @@ const QualityInfo = ({ info, closeInfoFn, quality }: QualityInfo) => {
       } catch (err) {
         logger.log("Chapter fetch error", err);
         toast.error("Failed to get chapters");
+      }finally{
+        setChaps({isLoading: false, data: []});
       }
     })();
   }, []);
