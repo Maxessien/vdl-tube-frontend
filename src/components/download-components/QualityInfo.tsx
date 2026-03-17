@@ -33,6 +33,8 @@ const QualityInfo = ({ info, closeInfoFn, quality }: QualityInfo) => {
       end?: number;
     }) =>{
       setDownloading({isActive: true, type: type})
+      if (type === "range") toast.warn("Range downloads takes more time to process videos")
+      if (type.trim().startsWith("chapter")) toast.warn("Chapter downloads takes more time to process and trim videos")
       return downloadVideo(
         key,
         quality,

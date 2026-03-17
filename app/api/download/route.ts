@@ -1,11 +1,13 @@
+import { uploader } from "@/src/utils/cloudinary";
 import logger from "@/src/utils/logger";
+import { UploadApiResponse } from "cloudinary";
 import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
 import { existsSync } from "fs";
 import path from "path";
-import { PassThrough, Readable } from "stream";
 
-export const runtime = "nodejs"
+
+export const runtime = "nodejs";
 
 function resolveFfmpegBinaryPath(): string | null {
   const candidates = [
@@ -33,7 +35,7 @@ function resolveFfmpegBinaryPath(): string | null {
 }
 
 const resolvedFfmpegPath = resolveFfmpegBinaryPath();
-logger.log("resolved", resolvedFfmpegPath)
+logger.log("resolved", resolvedFfmpegPath);
 if (resolvedFfmpegPath) {
   ffmpeg.setFfmpegPath(resolvedFfmpegPath);
 }
@@ -59,68 +61,67 @@ export async function GET(request: Request) {
   const end = searchParams.get("end");
   const startTime = parseTimeParam(start);
   const endTime = parseTimeParam(end);
+  const hasStart = startTime !== null;
+  const hasEnd = endTime !== null && endTime > startTime;
 
-  logger.info("time", {startTime, endTime, end, start, videoUrl})
+  logger.info("time", { startTime, endTime, end, start, videoUrl });
 
   if (!videoUrl) return new Response("Missing URL", { status: 400 });
+
+  // Return video immediately from url if no range was specified
+  if (!hasStart) {
+    const res = await fetch(videoUrl);
+    return new Response(res.body, {
+      headers: {
+        "Content-Type": "video/mp4",
+        "Content-Disposition": `attachment;"`,
+        "Content-Length": res.headers.get("Content-Length"),
+      },
+    });
+  }
+
   if (!resolvedFfmpegPath) {
-    return new Response("FFmpeg binary could not be resolved on server", { status: 500 });
+    return new Response("FFmpeg binary could not be resolved on server", {
+      status: 500,
+    });
   }
   if (request.signal.aborted) {
     return new Response("Request aborted", { status: 499 });
   }
 
-  const bridge = new PassThrough();
-  let hasStreamedData = false;
-
-  bridge.once("data", () => {
-    hasStreamedData = true;
-  });
-
   const command = ffmpeg(videoUrl)
     .videoCodec("copy")
     .audioCodec("copy")
     .format("mp4")
-    .outputOptions("-movflags frag_keyframe+empty_moov")
-    .on("error", (err) => {
-      const normalizedError = err instanceof Error ? err : new Error(String(err));
+    .setStartTime(startTime)
+    .outputOptions("-movflags frag_keyframe+empty_moov");
 
-      if (!hasStreamedData) {
-        bridge.destroy(new Error(`Unable to process video stream: ${normalizedError.message}`));
-        return;
-      }
-
-      bridge.destroy(normalizedError);
-    });
-
-  const onAbort = () => {
-    const abortError = new Error("Download aborted by client");
-    bridge.destroy(abortError);
-    command.kill("SIGKILL");
-  };
-
-  request.signal.addEventListener("abort", onAbort, { once: true });
-  const removeAbortListener = () => {
-    request.signal.removeEventListener("abort", onAbort);
-  };
-  bridge.once("close", removeAbortListener);
-  bridge.once("error", removeAbortListener);
-
-  if (startTime !== null) {
-    command.setStartTime(startTime);
-
-    if (endTime !== null && endTime > startTime) {
-      command.duration(endTime - startTime);
-    }
+  if (hasEnd) {
+    command.duration(endTime - startTime);
   }
 
-  command.pipe(bridge);
+ const cloudinaryRes: UploadApiResponse = await new Promise((resolve, reject) => {
+    const stream = uploader.upload_stream(
+      { folder: "/vdl-tube", resource_type: "video" },
+      (err, result) => {
+        if (err) {
+          logger.error("Cloudnary upload err", err)
+          return reject(err)
+        };
+        resolve(result);
+      }
+    );
 
-  const webStream = Readable.toWeb(bridge);
-  return new Response(webStream as BodyInit, {
+    command.pipe(stream);
+  });
+
+  const res = await fetch(cloudinaryRes.secure_url);
+
+  return new Response(res.body, {
     headers: {
       "Content-Type": "video/mp4",
-      "Content-Disposition": `attachment; filename="video.mp4"`,
+      "Content-Disposition": `attachment;"`,
+      "Content-Length": res.headers.get("Content-Length"),
     },
   });
 }
