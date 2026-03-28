@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+
+
+@font-face {
+  font-family: "Poppins";
+  src: url("/fonts/Poppins-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+body {
+  min-height: 100vh;
+  margin-top: 0;
+  font-family: "Poppins", sans-serif;
+  overflow-x: hidden;
+  background: var(--main-secondary);
+}
+
+main{
+  min-height: 540px;
+}
+
+button, a{
+    cursor: pointer;
+    transition: all 200ms linear;
+}
