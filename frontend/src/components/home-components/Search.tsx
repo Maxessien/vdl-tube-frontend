@@ -31,7 +31,7 @@ const Search = () => {
         value={videoUrl}
         placeholder="Search video or Paste video url"
         onChange={handleInputChange}
-        className="w-full placeholder:text-(--text-primary-light) rounded-[0px_9999px_9999px_0px] focus:outline-0 py-3 px-2 font-medium text-lg text-(--text-primary)"
+        className="w-full placeholder:text-base placeholder:text-(--text-primary-light) rounded-[0px_9999px_9999px_0px] focus:outline-0 py-3 px-2 font-medium text-lg text-(--text-primary)"
         type="text"
       />
     </div>
