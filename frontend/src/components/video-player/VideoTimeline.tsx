@@ -1,5 +1,5 @@
 import { secondsToTimestamp } from "@/src/utils/downloader";
-import { RefObject } from "react";
+import { RefObject, useState } from "react";
 import { VideoState } from "./VideoPlayer";
 
 const VideoTimeline = ({
@@ -9,6 +9,7 @@ const VideoTimeline = ({
   videoState: VideoState;
   videoRef: RefObject<HTMLVideoElement>;
 }) => {
+  const [isSeeking, setIsSeeking] = useState(false);
   const getWatchedPercent = (current: number, total: number) => {
     if (total <= 0) return 0;
     return (current / total) * 100;
@@ -28,17 +29,24 @@ const VideoTimeline = ({
           videoRef?.current?.duration < 60 * 60,
         )}
       </span>
-      <span
+      <div
         className={`flex-1 h-2 relative rounded-full`}
-        onTouchEnd={(e) =>
+        onTouchMove={(e) =>
           handleSeekTouch(
-            e.changedTouches?.[0].clientX,
+            e.changedTouches?.[0]?.clientX,
             e?.currentTarget?.getBoundingClientRect(),
           )
         }
-        onClick={(e) =>
-          handleSeekTouch(e.clientX, e?.currentTarget?.getBoundingClientRect())
-        }
+        onPointerMove={(e) => {
+          if (!isSeeking) return;
+          handleSeekTouch(e.clientX, e?.currentTarget?.getBoundingClientRect());
+        }}
+        onPointerDown={() => setIsSeeking(true)}
+        onPointerUp={() => setIsSeeking(false)}
+        onClick={(e)=>{
+          handleSeekTouch(e.clientX, e?.currentTarget?.getBoundingClientRect());
+          setIsSeeking(false)
+        }}
         style={{
           display: "grid",
           gridTemplateColumns: `${getWatchedPercent(videoState.currentTime, videoRef?.current?.duration)}% 
@@ -51,9 +59,9 @@ const VideoTimeline = ({
           style={{
             left: `${getWatchedPercent(videoState.currentTime, videoRef?.current?.duration)}%`,
           }}
-          className="absolute top-1/2 -translate-1/2 bg-(--main-primary) h-3 w-3 rounded-full"
+          className="absolute cursor-pointer top-1/2 -translate-1/2 bg-(--main-primary) h-3 w-3 rounded-full"
         ></span>
-      </span>
+      </div>
       <span className="text-sm font-medium text-(--text-primary)">
         {secondsToTimestamp(
           videoRef?.current?.duration,

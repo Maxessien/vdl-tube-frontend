@@ -70,14 +70,10 @@ const VideoFormats = ({ id }: { id: string }) => {
   }, []);
 
   return (
-    <section className="px-3 py-4 max-w-lg mx-auto">
-      {/* <img
-        className="w-full"
-        src={info?.thumbnail ?? info?.thumbnail_formats?.[0].url}
-        alt={`${info?.title} thumbnail`}
-      /> */}
+    <section className="px-3 py-4 md:grid md:grid-cols-[70%_30%] mx-auto">
 
       {vidUrl?.length > 0 && <VideoPlayer posterUrl={info?.thumbnail ?? info?.thumbnail_formats?.[0].url} title={info.title} urls={vidUrl} />}
+      <section className="w-full md:h-full md:overflow-y-auto">
       <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">
         {info?.title}
       </h1>
@@ -111,6 +107,7 @@ const VideoFormats = ({ id }: { id: string }) => {
           />
         </motion.div>
       )}
+      </section>
     </section>
   );
 };
