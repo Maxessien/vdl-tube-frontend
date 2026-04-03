@@ -1,8 +1,9 @@
+import VideoPlayer from "../video-player/VideoPlayer";
 import Search from "./Search";
 
 const Home = () => {
   return (
-    // <main className={"mx-auto w-full px-2 pt-20 gap-4" + " md:grid md:grid-cols-[70%_30%] gap-3 justify-between"}>
+    // <main className={"mx-auto w-full px-2 pt-20 gap-4" + " md:grid md:grid-cols-[70%_30%] gap-2 lg:gap-3 justify-start"}>
     //   <div className="h-full max-h-screen max-w-full aspect-video pb-5">
     //     <VideoPlayer
     //       posterUrl=""

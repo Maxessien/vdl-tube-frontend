@@ -18,12 +18,12 @@ export interface VideoState {
 }
 
 const VideoPlayer = ({
-  urls,
+  url,
   posterUrl,
   title,
   startTime,
 }: {
-  urls: string[];
+  url: string;
   posterUrl: string;
   title: string;
   startTime?: number;
@@ -76,11 +76,13 @@ const VideoPlayer = ({
     return removeAllListeners();
   }, []);
 
-  const handleKeyEvent = ({ key }: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyEvent = (e: KeyboardEvent<HTMLDivElement>) => {
+    e.preventDefault()
+
     const vidRef = videoRef?.current;
     if (!vidRef) return;
 
-    switch (key) {
+    switch (e.key) {
       case " ":
         videoState.paused
           ? videoRef?.current?.play()
@@ -107,13 +109,14 @@ const VideoPlayer = ({
     <div
       tabIndex={1}
       onKeyDown={(e) => {
-        if (videoState.expanded) handleKeyEvent(e);
+        handleKeyEvent(e);
       }}
-      className="h-full w-max max-w-full relative focus:outline-0"
+      className="w-full mx-auto relative focus:outline-amber-700 focus:outline-2"
     >
       <video
         ref={videoRef}
-        className="h-full z-5"
+        src={url}
+        className="w-full z-5"
         preload="metadata"
         poster={posterUrl}
         onLoadedMetadata={(e) => {
@@ -151,14 +154,14 @@ const VideoPlayer = ({
             seeked: { direction: "forward", active: false },
           }))
         }
+        onWaiting={() =>
+          setVideoState((state) => ({ ...state, loading: true }))
+        }
         onVolumeChange={(e) => {
           const bool = e?.currentTarget?.muted || false;
           setVideoState((state) => ({ ...state, muted: bool }));
         }}
       >
-        {urls.map((url) => (
-          <source src={url} type="video/mp4"></source>
-        ))}
       </video>
       <AnimatePresence>
         {videoState.playbackStarted && showControls && (
@@ -169,8 +172,8 @@ const VideoPlayer = ({
             transition={{ duration: 0.15, ease: "linear" }}
             className="absolute z-10 w-full flex flex-col h-full top-0 left-0"
           >
-            <div className="w-full px-2 py-3 bg-[rgb(0,0,0,0.55)]">
-              <p className="text-base text-left font-medium text-(--text-primary)">
+            <div className="w-full px-2 py-1.5 sm:px-2 sm:py-3 bg-[rgb(0,0,0,0.55)]">
+              <p className="text-xs sm:text-sm md:text-base text-left font-medium text-(--text-primary) truncate">
                 {title}
               </p>
             </div>
@@ -183,7 +186,7 @@ const VideoPlayer = ({
                 isPaused={videoState.paused}
               />
             </div>
-            <div className="bg-[rgb(0,0,0,0.55)] px-3 py-2 flex flex-col w-full justify-between min-h-max h-1/5 max-h-25">
+            <div className="bg-[rgb(0,0,0,0.55)] px-2 py-1.5 sm:px-3 sm:py-2 flex flex-col w-full justify-between gap-1 sm:gap-2 min-h-max h-[18%] sm:h-1/5 max-h-20 sm:max-h-25">
               <VideoTimeline videoRef={videoRef} videoState={videoState} />
               <VideoControls
                 seek={seek}
@@ -214,7 +217,7 @@ const VideoPlayer = ({
               videoRef?.current?.play();
             }}
             disabled={videoState.loading}
-            className="inline-flex justify-center items-center p-4 text-2xl rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-medium text-(--text-primary)"
+            className="inline-flex justify-center items-center p-2.5 sm:p-4 text-lg sm:text-2xl rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-medium text-(--text-primary)"
           >
             <FaPlay />
           </button>

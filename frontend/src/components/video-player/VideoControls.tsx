@@ -1,10 +1,12 @@
-import { RefObject } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { RefObject, useState } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
 import {
   MdForward10,
   MdFullscreen,
   MdFullscreenExit,
   MdReplay10,
+  MdVolumeUp,
 } from "react-icons/md";
 import { VideoState } from "./VideoPlayer";
 import VolumeControls from "./VolumeControls";
@@ -18,21 +20,36 @@ const VideoControls = ({
   videoState: VideoState;
   videoRef: RefObject<HTMLVideoElement>;
 }) => {
-
+  const [editVolume, setEditVolume] = useState(false);
   return (
     <div className="flex w-full max-w-7xl mx-auto justify-center items-center">
-      <div className="flex-1 flex justify-end">
-      <VolumeControls videoRef={videoRef} videoState={videoState} />
+      <div className="flex-1 flex justify-end relative">
+        <button onClick={()=>setEditVolume(!editVolume)} className="inline-flex w-max justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)">
+          <MdVolumeUp size={18} className="sm:w-5 sm:h-5" />
+        </button>
+        <AnimatePresence>
+          {
+           editVolume && <motion.div
+              initial={{ y: "25%", opacity: 0.6 }}
+              animate={{ y: "0%", opacity: 1 }}
+              exit={{ y: "50%", opacity: 0.3 }}
+              transition={{ duration: 0.5, ease: "linear" }}
+              className="w-full px-2 py-2 sm:py-3 rounded-md bg-(--main-secondary) absolute bottom-full right-0"
+            >
+              <VolumeControls videoRef={videoRef} videoState={videoState} />
+            </motion.div>
+          }
+        </AnimatePresence>
       </div>
-      <div className="flex flex-1 justify-center items-center gap-2">
+      <div className="flex flex-1 justify-center items-center gap-1 sm:gap-2">
         <button
-          className="inline-flex justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-1 font-medium text-(--text-primary)"
+          className="inline-flex justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)"
           onClick={() => seek(-10, "backward")}
         >
-          <MdReplay10 size={28} />
+          <MdReplay10 size={22} className="sm:w-7 sm:h-7" />
         </button>
         <button
-          className="inline-flex justify-center items-center p-4 text-lg rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-medium text-(--text-primary)"
+          className="inline-flex justify-center items-center p-2 sm:p-4 text-sm sm:text-lg rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-medium text-(--text-primary)"
           onClick={() =>
             videoState.paused
               ? videoRef?.current?.play()
@@ -43,23 +60,27 @@ const VideoControls = ({
           {videoState.paused ? <FaPlay /> : <FaPause />}
         </button>
         <button
-          className="inline-flex justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-1 font-medium text-(--text-primary)"
+          className="inline-flex justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)"
           onClick={() => seek(10, "forward")}
         >
-          <MdForward10 size={28} />
+          <MdForward10 size={22} className="sm:w-7 sm:h-7" />
         </button>
       </div>
       <div className="flex-1 flex justify-start">
-      <button
-        className="inline-flex w-max justify-start items-center hover:bg-(--main-secondary-light) rounded-full p-1 font-medium text-(--text-primary)"
-        onClick={() =>
-          videoState.expanded
-            ? document.exitFullscreen()
-            : videoRef?.current?.parentElement?.requestFullscreen()
-        }
-      >
-        {videoState.expanded ? <MdFullscreenExit size={28} /> : <MdFullscreen size={28} />}
-      </button>
+        <button
+          className="inline-flex w-max justify-start items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)"
+          onClick={() =>
+            videoState.expanded
+              ? document.exitFullscreen()
+              : videoRef?.current?.parentElement?.requestFullscreen()
+          }
+        >
+          {videoState.expanded ? (
+            <MdFullscreenExit size={22} className="sm:w-7 sm:h-7" />
+          ) : (
+            <MdFullscreen size={22} className="sm:w-7 sm:h-7" />
+          )}
+        </button>
       </div>
     </div>
   );

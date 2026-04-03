@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import LoadRoller from "../reusable-components/LoadRoller";
 import VideoPlayer from "../video-player/VideoPlayer";
 import QualityInfo from "./QualityInfo";
 
@@ -37,7 +38,7 @@ const FormatsListCard = ({
 
 const VideoFormats = ({ id }: { id: string }) => {
   const infos = useSelector((state: RootState) => state.infoMappings);
-  const [vidUrl, setVidUrl] = useState<string[]>([]);
+  const [vidUrl, setVidUrl] = useState<string>("");
   const info = infos?.[id];
 
   if (!info) return notFound();
@@ -48,37 +49,61 @@ const VideoFormats = ({ id }: { id: string }) => {
   }>({ isOpen: false, quality: info.video_formats?.[0].quality });
 
   const getVidUrl = async (quality: string) => {
-    const { data } = await resolveDownloadUrl(
-      info.key,
-      quality,
-      "video",
-      null,
-      info.titleSlug,
-    );
-    if (!data) return "/null";
-    return `/api/download?url=${data?.downloadUrl}&stream=true`;
+    try {
+      const { data } = await resolveDownloadUrl(
+        info.key,
+        quality,
+        "video",
+        null,
+        info.titleSlug,
+      );
+      if (!data) return null;
+      return `/api/download?url=${data?.downloadUrl}&stream=true`;
+    } catch (err) {
+      return null;
+    }
   };
 
   useEffect(() => {
     (async () => {
-      const urls: string[] = [];
+      let url: string;
+
       for (const format of info.video_formats) {
-        const url = await getVidUrl(format.quality.toString());
-        urls.push(url);
+        const formatUrl = await getVidUrl(format.quality.toString());
+        if (formatUrl) {
+          url = formatUrl;
+          break
+        }
       }
-      setVidUrl(urls);
+      setVidUrl(url ?? "");
     })();
   }, []);
 
   return (
-    <section className="px-3 py-4 md:grid md:grid-cols-[70%_30%] gap-3 justify-between mx-auto">
-      <div className="h-full max-h-screen max-w-full aspect-video pb-5">
-        {vidUrl?.length > 0 && (
+    <section className="px-3 py-4 md:grid md:grid-cols-[70%_30%] gap-3 md:justify-between mx-auto">
+      <div className="md:h-full max-h-screen w-full md:w-auto max-w-full pb-5 aspect-video">
+        {vidUrl?.trim()?.length > 0 ? (
           <VideoPlayer
             posterUrl={info?.thumbnail ?? info?.thumbnail_formats?.[0].url}
             title={info.title}
-            urls={vidUrl}
+            url={vidUrl}
           />
+        ) : (
+          <div className="max-w-4xl w-full relative aspect-video">
+            <div className="absolute z-5 w-full flex items-center justify-center h-full top-0 left-0 bg-[rgb(0,0,0,0.4)]">
+              <div className="bg-[rgb(0,0,0,0.8)] w-13 h-13 sm:w-20 sm:h-20 rounded-full p-3">
+                <LoadRoller
+                  strokeWidth={7}
+                  className="text-(--text-primary)"
+                />
+              </div>
+            </div>
+            <img
+              src={info?.thumbnail ?? info?.thumbnail_formats?.[0].url}
+              alt={info.title}
+              className="w-full"
+            />
+          </div>
         )}
       </div>
       <section className="w-full md:h-full md:overflow-y-auto">

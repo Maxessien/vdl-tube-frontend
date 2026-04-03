@@ -22,15 +22,15 @@ const VideoTimeline = ({
   };
 
   return (
-    <div className="flex w-full gap-3 justify-between items-center">
-      <span className="text-sm font-medium text-(--text-primary)">
+    <div className="flex w-full gap-2 sm:gap-3 justify-between items-center">
+      <span className="text-[11px] sm:text-sm font-medium text-(--text-primary)">
         {secondsToTimestamp(
           videoState.currentTime,
           videoRef?.current?.duration < 60 * 60,
         )}
       </span>
       <div
-        className={`flex-1 h-2 relative rounded-full`}
+        className={`flex-1 h-1.5 sm:h-2 relative rounded-full`}
         onTouchMove={(e) =>
           handleSeekTouch(
             e.changedTouches?.[0]?.clientX,
@@ -59,10 +59,10 @@ const VideoTimeline = ({
           style={{
             left: `${getWatchedPercent(videoState.currentTime, videoRef?.current?.duration)}%`,
           }}
-          className="absolute cursor-pointer top-1/2 -translate-1/2 bg-(--main-primary) h-3 w-3 rounded-full"
+          className="absolute cursor-pointer top-1/2 -translate-1/2 bg-(--main-primary) h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full"
         ></span>
       </div>
-      <span className="text-sm font-medium text-(--text-primary)">
+      <span className="text-[11px] sm:text-sm font-medium text-(--text-primary)">
         {secondsToTimestamp(
           videoRef?.current?.duration,
           videoRef?.current?.duration < 60 * 60,
