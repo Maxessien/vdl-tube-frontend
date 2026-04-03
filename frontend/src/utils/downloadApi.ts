@@ -1,10 +1,7 @@
-"use server"
-
 import { existsSync } from "fs";
 import path from "path";
 import ffmpegPath from "ffmpeg-static";
 
-export const runtime = "nodejs";
 
 function resolveFfmpegBinaryPath(): string | null {
   const candidates = [

@@ -7,6 +7,9 @@ import logger from "@/src/utils/logger";
 import { UploadApiResponse } from "cloudinary";
 import ffmpeg from "fluent-ffmpeg";
 
+
+export const runtime = "nodejs";
+
 const resolvedFfmpegPath = resolveFfmpegBinaryPath();
 
 if (resolvedFfmpegPath) ffmpeg.setFfmpegPath(resolvedFfmpegPath);
