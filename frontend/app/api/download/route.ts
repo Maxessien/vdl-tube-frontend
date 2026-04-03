@@ -70,14 +70,22 @@ export async function GET(request: Request) {
 
   // Return video immediately from url if no range was specified
   if (!hasStart) {
-    const res = await fetch(videoUrl);
-    console.log(res.headers.get("Content-Length"))
+    const range = request.headers.get("range");
+    const headers = {};
+    if (range) headers["Range"] = range;
+    const res = await fetch(videoUrl, { headers });
     return new Response(res.body, {
       headers: {
         "Content-Type": "video/mp4",
-        "Content-Length": res.headers.get("Content-Length"),
-        ...(!stream?.trim() ? {"Content-Disposition": `attachment;"`} : {}),
+        "Content-Length": res.headers.get("Content-Length") || "",
+        ...(!stream?.trim()
+          ? { "Content-Disposition": `attachment;"` }
+          : {
+              "Content-Range": res.headers.get("Content-Range") || "",
+              "Accept-Ranges": res.headers.get("Accept-Ranges") || "",
+            }),
       },
+      status: stream?.trim() ? 206 : 200,
     });
   }
 
@@ -124,7 +132,7 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "video/mp4",
       "Content-Length": res.headers.get("Content-Length"),
-        ...(!stream?.trim() ? {"Content-Disposition": `attachment;"`} : {}),
+      "Content-Disposition": `attachment;"`,
     },
   });
 }
