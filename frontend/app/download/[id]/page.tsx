@@ -2,7 +2,7 @@ import VideoFormats from "@/src/components/download-components/VideoFormats";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Tube VDL - Download",
+  title: "VDL Tube - Download",
 };
 
 interface DownloadPageProps {
@@ -10,9 +10,8 @@ interface DownloadPageProps {
   searchParams: Promise<{id: string}>
 }
 
-const DownloadPage = async ({ params, searchParams }: DownloadPageProps) => {
+const DownloadPage = async ({ params }: DownloadPageProps) => {
   const par = await params
-  const sPar = await searchParams
   
   return <VideoFormats id={par.id} />
 };

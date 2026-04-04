@@ -22,7 +22,7 @@ const VideoTimeline = ({
   };
 
   return (
-    <div className="flex w-full gap-2 sm:gap-3 justify-between items-center">
+    <div className="flex w-full leading-px gap-2 sm:gap-3 justify-between items-center">
       <span className="text-[11px] sm:text-sm font-medium text-(--text-primary)">
         {secondsToTimestamp(
           videoState.currentTime,

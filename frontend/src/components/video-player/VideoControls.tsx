@@ -1,3 +1,4 @@
+import { RootState } from '@/src/store';
 import { AnimatePresence, motion } from "framer-motion";
 import { RefObject, useState } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
@@ -8,6 +9,7 @@ import {
   MdReplay10,
   MdVolumeUp,
 } from "react-icons/md";
+import { useSelector } from "react-redux";
 import { VideoState } from "./VideoPlayer";
 import VolumeControls from "./VolumeControls";
 
@@ -21,11 +23,13 @@ const VideoControls = ({
   videoRef: RefObject<HTMLVideoElement>;
 }) => {
   const [editVolume, setEditVolume] = useState(false);
+
+  const {width} = useSelector((state: RootState) => state.screenSize)
   return (
-    <div className="flex w-full max-w-7xl mx-auto justify-center items-center">
-      <div className="flex-1 flex justify-end relative">
+    <div className="flex w-full max-w-5xl mx-auto justify-between items-center">
+      <div className="flex-1 flex justify-start relative">
         <button onClick={()=>setEditVolume(!editVolume)} className="inline-flex w-max justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)">
-          <MdVolumeUp size={18} className="sm:w-5 sm:h-5" />
+          <MdVolumeUp size={width > 480 ? 25 : 18} />
         </button>
         <AnimatePresence>
           {
@@ -46,10 +50,11 @@ const VideoControls = ({
           className="inline-flex justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)"
           onClick={() => seek(-10, "backward")}
         >
-          <MdReplay10 size={22} className="sm:w-7 sm:h-7" />
+          <MdReplay10 size={width < 480 ? 22 : 27} />
         </button>
         <button
-          className="inline-flex justify-center items-center p-2 sm:p-4 text-sm sm:text-lg rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-medium text-(--text-primary)"
+          style={width < 480 ? {padding: "10px"} : {}}
+          className="inline-flex justify-center items-center p-3 sm:p-4 text-lg rounded-full bg-(--main-primary) hover:bg-(--main-primary-light) font-medium text-(--text-primary)"
           onClick={() =>
             videoState.paused
               ? videoRef?.current?.play()
@@ -63,10 +68,10 @@ const VideoControls = ({
           className="inline-flex justify-center items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)"
           onClick={() => seek(10, "forward")}
         >
-          <MdForward10 size={22} className="sm:w-7 sm:h-7" />
+          <MdForward10 size={width < 480 ? 22 : 27} />
         </button>
       </div>
-      <div className="flex-1 flex justify-start">
+      <div className="flex-1 flex justify-end">
         <button
           className="inline-flex w-max justify-start items-center hover:bg-(--main-secondary-light) rounded-full p-0.5 sm:p-1 font-medium text-(--text-primary)"
           onClick={() =>
@@ -76,9 +81,9 @@ const VideoControls = ({
           }
         >
           {videoState.expanded ? (
-            <MdFullscreenExit size={22} className="sm:w-7 sm:h-7" />
+            <MdFullscreenExit size={width < 480 ? 22 : 27} className="sm:w-7 sm:h-7" />
           ) : (
-            <MdFullscreen size={22} className="sm:w-7 sm:h-7" />
+            <MdFullscreen size={width < 480 ? 22 : 27} className="sm:w-7 sm:h-7" />
           )}
         </button>
       </div>

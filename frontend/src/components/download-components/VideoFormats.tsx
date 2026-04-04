@@ -41,6 +41,8 @@ const VideoFormats = ({ id }: { id: string }) => {
   const [vidUrl, setVidUrl] = useState<string>("");
   const info = infos?.[id];
 
+  console.log(info, id)
+
   if (!info) return notFound();
 
   const [qualityInfo, setQualityInfo] = useState<{
@@ -80,8 +82,8 @@ const VideoFormats = ({ id }: { id: string }) => {
   }, []);
 
   return (
-    <section className="px-3 py-4 md:grid md:grid-cols-[70%_30%] gap-3 md:justify-between mx-auto">
-      <div className="md:h-full max-h-screen w-full md:w-auto max-w-full pb-5 aspect-video">
+    <section className="md:grid md:grid-cols-[70%_30%] gap-3 md:justify-between mx-auto">
+      <div className="md:h-full max-h-screen md:px-3 md:py-4 w-full md:w-auto max-w-full pb-5 aspect-video">
         {vidUrl?.trim()?.length > 0 ? (
           <VideoPlayer
             posterUrl={info?.thumbnail ?? info?.thumbnail_formats?.[0].url}
@@ -106,7 +108,7 @@ const VideoFormats = ({ id }: { id: string }) => {
           </div>
         )}
       </div>
-      <section className="w-full md:h-full md:overflow-y-auto">
+      <section className="w-full px-3 py-4">
         <h1 className="text-2xl text-(--text-primary) my-3 w-full text-center font-semibold">
           {info?.title}
         </h1>

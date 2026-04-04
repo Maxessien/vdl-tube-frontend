@@ -111,12 +111,12 @@ const VideoPlayer = ({
       onKeyDown={(e) => {
         handleKeyEvent(e);
       }}
-      className="w-full mx-auto relative focus:outline-amber-700 focus:outline-2"
+      className="w-full mx-auto relative flex justify-center items-center focus:outline-amber-700 focus:outline-2"
     >
       <video
         ref={videoRef}
         src={url}
-        className="w-full z-5"
+        className="w-full max-h-screen z-5"
         preload="metadata"
         poster={posterUrl}
         onLoadedMetadata={(e) => {

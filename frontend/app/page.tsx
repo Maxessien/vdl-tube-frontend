@@ -2,7 +2,7 @@ import Home from "@/src/components/home-components/Home";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Tube VDL",
+  title: "VDL Tube",
 };
 
 const HomePage = () => <Home />;

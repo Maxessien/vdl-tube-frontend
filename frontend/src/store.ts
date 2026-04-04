@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import infoMappingsReducer from "./store-slices/infoMappingsSlice"
+import infoMappingsReducer from "./store-slices/infoMappingsSlice";
+import screenSizeReducer from "./store-slices/screenSizeSlice";
 
 const store = configureStore({
   reducer: {
-    infoMappings: infoMappingsReducer
+    infoMappings: infoMappingsReducer,
+    screenSize: screenSizeReducer,
   },
 });
 

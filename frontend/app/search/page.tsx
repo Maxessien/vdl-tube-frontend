@@ -1,6 +1,12 @@
 import ResultCard from "@/src/components/search-result-components/ResultCard";
 import { searchVideo } from "@/src/utils/youtubei";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+
+export const metadata: Metadata = {
+  title: "VDL Tube - Search",
+};
 
 const SearchPage = async ({
   searchParams,
